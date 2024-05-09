@@ -22,8 +22,9 @@ resource "aws_cloudfront_distribution" "main" {
   }
 
   origin {
-    domain_name = aws_s3_bucket.main.bucket_regional_domain_name
-    origin_id   = aws_s3_bucket.main.bucket
+    domain_name              = aws_s3_bucket.main.bucket_regional_domain_name
+    origin_id                = aws_s3_bucket.main.bucket
+    origin_access_control_id = aws_cloudfront_origin_access_control.main.id
   }
 
   restrictions {
@@ -33,8 +34,7 @@ resource "aws_cloudfront_distribution" "main" {
   }
 
   viewer_certificate {
-    acm_certificate_arn = ""
-    ssl_support_method  = "sni-only"
+    cloudfront_default_certificate = true
   }
 }
 
@@ -64,9 +64,10 @@ resource "aws_s3_bucket_policy" "main" {
   policy = data.aws_iam_policy_document.cloudfront_oac_access.json
 }
 resource "aws_s3_object" "webpage_file" {
-  for_each = fileset("${path.module}/S3Content", "*.html")
-  bucket   = aws_s3_bucket.main.bucket
-  key      = each.value
-  source   = "${path.module}/S3Content/${each.value}"
+  for_each     = fileset("${path.module}/S3Content", "*.html")
+  bucket       = aws_s3_bucket.main.bucket
+  key          = each.value
+  content_type = each.value
+  source       = "${path.module}/S3Content/${each.value}"
 }
 
