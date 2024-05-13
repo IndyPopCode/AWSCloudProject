@@ -1,12 +1,12 @@
 locals {
-  s3_bucket_name = "my-bucket"
+  s3_bucket_name = "myBucket"
 }
-
+#creating the s3 bucket
 resource "aws_s3_bucket" "main" {
   bucket = local.s3_bucket_name
 }
 
-
+#creating the cloudfront distribution
 resource "aws_cloudfront_distribution" "main" {
   default_root_object = "index.html"
   enabled             = true
@@ -32,12 +32,12 @@ resource "aws_cloudfront_distribution" "main" {
       restriction_type = "none"
     }
   }
-
+  #default certificate 
   viewer_certificate {
     cloudfront_default_certificate = true
   }
 }
-
+#providing access for cloudfront to access the bucket
 data "aws_iam_policy_document" "cloudfront_oac_access" {
   statement {
     principals {
@@ -63,6 +63,7 @@ resource "aws_s3_bucket_policy" "main" {
   bucket = aws_s3_bucket.main.id
   policy = data.aws_iam_policy_document.cloudfront_oac_access.json
 }
+#adding the webpage files to the s3 bucket
 resource "aws_s3_object" "webpage_file" {
   for_each     = fileset("${path.module}/S3Content", "*.html")
   bucket       = aws_s3_bucket.main.bucket
